@@ -1,0 +1,23 @@
+# Tooling files
+.vscode/
+.idea/
+.mypy_cache/
+
+# Generated python files
+**/*.egg-info/
+**/*.pyc
+**/__pycache__/
+
+# Build artifacts
+/build/
+/dist/
+/public/
+
+# API key
+api_key.txt
+
+# Example outputs
+*.slxc
+*.mexa64
+archcomp/slprj/
+archcomp/*_all_specs*/

@@ -1,0 +1,21 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "llm-falsifier"
+version = "0.1.0"
+description = "A framework for falsifying Cyber-Physical Systems (CPS) using Large Language Models (LLMs) as optimizers, built on top of Psi-TaLiRo."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.9,<3.10"
+dependencies = [
+    "aerobench",
+    "matlabengine==9.12.21",
+    "openai==2.2.0",
+    "pandas>=2.3.3",
+    "psy-taliro[rtamt]==1.0.0b9",
+]
+
+[tool.uv.sources]
+aerobench = { git = "https://github.com/qthibeault/aerobenchvvpython.git" }
