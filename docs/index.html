@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LLM-Falsifier</title>
+
+<meta name="description" content="LLM-Falsifier: an LLM-driven robustness-guided falsifier for cyber-physical systems, outperforming classical falsification tools on the ARCH-COMP benchmarks.">
+<meta name="author" content="Ali ArjomandBigdeli, Jiawei Zhou, Stanley Bak">
+<meta name="keywords" content="falsification, cyber-physical systems, large language models, signal temporal logic, STL, robustness, ARCH-COMP">
+
+<!-- Open Graph / Twitter cards, so the link previews nicely on social media -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Large Language Models as Falsifiers for Cyber-Physical Systems">
+<meta property="og:description" content="LLM-Falsifier: an LLM-driven robustness-guided falsifier for cyber-physical systems, outperforming classical falsification tools on 14 of 21 ARCH-COMP specifications.">
+<meta property="og:url" content="https://aliabigdeli.github.io/llm-falsifier/">
+<meta property="og:image" content="https://aliabigdeli.github.io/llm-falsifier/teaser.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Large Language Models as Falsifiers for Cyber-Physical Systems">
+<meta name="twitter:description" content="An LLM-driven robustness-guided falsifier for cyber-physical systems.">
+<meta name="twitter:image" content="https://aliabigdeli.github.io/llm-falsifier/teaser.png">
+
+<!-- Google Scholar indexing -->
+<meta name="citation_title" content="Large Language Models as Falsifiers for Cyber-Physical Systems">
+<meta name="citation_author" content="ArjomandBigdeli, Ali">
+<meta name="citation_author" content="Zhou, Jiawei">
+<meta name="citation_author" content="Bak, Stanley">
+<meta name="citation_publication_date" content="2026">
+<meta name="citation_arxiv_id" content="2609.20752">
+<meta name="citation_pdf_url" content="https://arxiv.org/pdf/2609.20752">
+
+<link rel="canonical" href="https://aliabigdeli.github.io/llm-falsifier/">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#128293;</text></svg>">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg:            #ffffff;
+  --bg-soft:       #f6f7f9;
+  --bg-code:       #f2f3f5;
+  --text:          #1d2126;
+  --text-muted:    #5b636d;
+  --text-faint:    #858d97;
+  --rule:          #e2e5ea;
+  --accent:        #9d0a0e;       /* Stony Brook red */
+  --accent-soft:   #fdeceb;
+  --btn-bg:        #24292f;
+  --btn-text:      #ffffff;
+  --max:           860px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:          #14171a;
+    --bg-soft:     #1c2024;
+    --bg-code:     #1e2226;
+    --text:        #e6e9ed;
+    --text-muted:  #a8b0b9;
+    --text-faint:  #7d858f;
+    --rule:        #2c3238;
+    --accent:      #f2777a;
+    --accent-soft: #2a1d1e;
+    --btn-bg:      #e6e9ed;
+    --btn-text:    #14171a;
+  }
+}
+:root[data-theme="dark"] {
+  --bg:          #14171a;
+  --bg-soft:     #1c2024;
+  --bg-code:     #1e2226;
+  --text:        #e6e9ed;
+  --text-muted:  #a8b0b9;
+  --text-faint:  #7d858f;
+  --rule:        #2c3238;
+  --accent:      #f2777a;
+  --accent-soft: #2a1d1e;
+  --btn-bg:      #e6e9ed;
+  --btn-text:    #14171a;
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Source Sans 3", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 17px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap { max-width: var(--max); margin: 0 auto; padding: 0 16px; }
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ---------- header ---------- */
+
+header {
+  border-bottom: 1px solid var(--rule);
+  padding: 56px 0 40px;
+  text-align: center;
+}
+
+h1 {
+  font-size: clamp(1.75rem, 5vw, 2.6rem);
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  margin: 0 0 6px;
+}
+
+.venue {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin: 0 0 24px;
+}
+
+.authors {
+  font-size: 1.05rem;
+  margin: 0 0 6px;
+  line-height: 2;
+}
+.authors a { color: var(--text); border-bottom: 1px solid var(--rule); }
+.authors a:hover { color: var(--accent); border-bottom-color: var(--accent); text-decoration: none; }
+
+.affil {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin: 0 0 28px;
+}
+
+/* ---------- buttons ---------- */
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  border-radius: 999px;
+  background: var(--btn-bg);
+  color: var(--btn-text);
+  font-size: 0.95rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+  transition: transform .12s ease, opacity .12s ease;
+}
+.btn:hover { text-decoration: none; opacity: .88; transform: translateY(-1px); }
+.btn svg { width: 17px; height: 17px; fill: currentColor; flex: none; }
+
+/* ---------- sections ---------- */
+
+section { padding: 44px 0; border-bottom: 1px solid var(--rule); }
+section:last-of-type { border-bottom: none; }
+
+h2 {
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0 0 18px;
+}
+
+h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 26px 0 8px;
+}
+
+p { margin: 0 0 16px; }
+p:last-child { margin-bottom: 0; }
+
+.lead { color: var(--text-muted); }
+
+/* ---------- teaser figure ---------- */
+
+figure { margin: 0; }
+
+figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  border: 1px solid var(--rule);
+  background: #fff;
+}
+
+figcaption {
+  margin-top: 12px;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* ---------- highlight stats ---------- */
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 14px;
+  margin: 0 0 26px;
+}
+
+.stat {
+  background: var(--bg-soft);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 18px 20px;
+}
+.stat .num {
+  display: block;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1.2;
+}
+.stat .lbl {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+ul { margin: 0 0 16px; padding-left: 22px; }
+li { margin-bottom: 8px; }
+li:last-child { margin-bottom: 0; }
+
+/* ---------- code ---------- */
+
+pre, code { font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+
+code { font-size: 0.88em; background: var(--bg-code); padding: 2px 5px; border-radius: 4px; }
+
+pre {
+  background: var(--bg-code);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 16px 18px;
+  overflow-x: auto;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  margin: 0;
+}
+pre code { background: none; padding: 0; font-size: inherit; }
+
+.code-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.code-head h2, .code-head h3 { margin: 0; }
+
+.copy {
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--bg-soft);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 5px 12px;
+  cursor: pointer;
+  flex: none;
+}
+.copy:hover { color: var(--text); border-color: var(--text-faint); }
+
+/* ---------- footer ---------- */
+
+footer {
+  padding: 32px 0 48px;
+  font-size: 0.88rem;
+  color: var(--text-faint);
+  text-align: center;
+  border-top: 1px solid var(--rule);
+}
+footer p { margin: 0 0 8px; }
+
+@media (max-width: 600px) {
+  body { font-size: 16px; }
+  header { padding: 40px 0 32px; }
+  section { padding: 34px 0; }
+  .btn { padding: 8px 15px; font-size: 0.9rem; }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="wrap">
+    <h1>Large Language Models as Falsifiers<br>for Cyber-Physical Systems</h1>
+    <p class="venue">Preprint, 2026</p>
+
+    <p class="authors">
+      <!-- <a href="https://github.com/aliabigdeli">Ali ArjomandBigdeli</a> &nbsp;·&nbsp; -->
+      Ali ArjomandBigdeli &nbsp;·&nbsp;
+      Jiawei Zhou &nbsp;·&nbsp;
+      Stanley Bak
+      <!-- <a href="https://stanleybak.com/">Stanley Bak</a> -->
+    </p>
+    <p class="affil">Stony Brook University</p>
+
+    <nav class="links">
+      <a class="btn" href="https://arxiv.org/abs/2609.20752">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 0h5.5L14 4.5V15a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V1a1 1 0 0 1 1-1zm5 1.5V5h3.5L9 1.5z"/></svg>
+        arXiv
+      </a>
+      <a class="btn" href="https://arxiv.org/pdf/2609.20752">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1a.75.75 0 0 1 .75.75v7.19l2.22-2.22a.75.75 0 1 1 1.06 1.06l-3.5 3.5a.75.75 0 0 1-1.06 0l-3.5-3.5a.75.75 0 0 1 1.06-1.06l2.22 2.22V1.75A.75.75 0 0 1 8 1zM2.5 13a.75.75 0 0 1 .75.75h9.5a.75.75 0 0 1 1.5 0v.5a.75.75 0 0 1-.75.75H2.5a.75.75 0 0 1-.75-.75v-.5A.75.75 0 0 1 2.5 13z"/></svg>
+        PDF
+      </a>
+      <a class="btn" href="https://github.com/aliabigdeli/llm-falsifier">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+        Code
+      </a>
+      <a class="btn" href="#bibtex">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 2h12v2H2V2zm0 4h12v2H2V6zm0 4h8v2H2v-2z"/></svg>
+        BibTeX
+      </a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<section>
+  <div class="wrap">
+    <figure>
+      <img src="teaser.png" alt="Block diagram of the closed-loop LLM-Falsifier workflow. The STL specification and system files feed a static model summarization step that builds a meta-prompt. The LLM proposes a candidate input, the simulator runs it, and an STL monitor computes the robustness value and critical time. If the robustness is negative the loop terminates with a counterexample; otherwise the sample and its feedback are appended to the prompt history and the loop repeats.">
+      <figcaption>LLM-Falsifier prompts a large language model to generate samples for a CPS falsification problem.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Abstract</h2>
+    <p class="lead">
+      Falsification searches for counterexamples to formal specifications in cyber-physical systems (CPS).
+      With specifications written in Signal Temporal Logic (STL), falsification can be formulated as a
+      robustness optimization problem, traditionally tackled with black-box search algorithms. In parallel,
+      large language models (LLMs) have recently emerged as surprisingly effective optimizers when coupled
+      with iterative prompting. In this work, we connect these ideas and introduce <strong>LLM-Falsifier</strong>,
+      an LLM-based approach that falsifies specifications by minimizing the STL robustness degree.
+    </p>
+    <p class="lead">
+      Beyond generic prompt-based optimization, our key idea is to expose the LLM to semantic information
+      that is natural for language models but absent from standard numerical optimizers, including
+      natural-language input and output names, output trajectories, and critical-time witnesses for the
+      minimum robustness value. These additions enable smarter and more sample-efficient robustness search.
+      On the ARCH-COMP falsification benchmarks, LLM-Falsifier is shown to outperform existing falsification
+      tools based on a range of optimization paradigms, from surrogate-based and Bayesian optimization to
+      search-based testing, on 14 of 21 specifications when measured by the average number of simulations
+      required to find a counterexample.
+    </p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>How it works</h2>
+    <p>
+      Given an STL specification and the system files, a <strong>static model summarization</strong> step
+      extracts model information such as input and output signal names and fills in a <strong>meta-prompt</strong>.
+      The <strong>LLM</strong> proposes the next sample, a <strong>simulator</strong> runs it, and an
+      <strong>STL monitor</strong> computes the robustness value <em>ρ</em> together with its critical time.
+      If <em>ρ</em> &lt; 0 a counterexample has been found; otherwise the sample, its robustness, and the
+      associated output-signal and critical-time information are appended to the prompt, and the loop repeats.
+    </p>
+    <p>
+      Unlike generic optimization-by-prompting, the loop starts without any initial samples, requests a single
+      sample per iteration, and performs no external ranking or selection among candidates — every candidate
+      costs a full simulation. What makes the difference is <em>what the model gets to see</em>:
+    </p>
+    <ul>
+      <li><strong>Natural-language signal names.</strong> Input and output names extracted from the Simulink model, so the LLM can reason about <em>throttle</em> and <em>brake</em> rather than <em>x₁</em> and <em>x₂</em>.</li>
+      <li><strong>Output trajectories.</strong> Output signal values over time, not just a single scalar score per sample.</li>
+      <li><strong>Critical-time witnesses.</strong> The time point at which the final robustness value is sensitive to changes in the signal, which tells the model <em>where</em> in the trajectory to push.</li>
+    </ul>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Results</h2>
+    <div class="stats">
+      <div class="stat">
+        <span class="num">14 / 21</span>
+        <span class="lbl">specifications where LLM-Falsifier beats existing falsification tools</span>
+      </div>
+      <div class="stat">
+        <span class="num">6</span>
+        <span class="lbl">specifications falsified on the <em>first</em> simulation, in every run</span>
+      </div>
+      <div class="stat">
+        <span class="num">5</span>
+        <span class="lbl">ARCH-COMP benchmark systems evaluated</span>
+      </div>
+    </div>
+    <p>
+      We evaluate on the ARCH-COMP 2025 falsification benchmarks — Automatic Transmission, Chasing Cars,
+      Neural Network controller, F16 Ground Collision Avoidance, and Steam Condenser — and compare against
+      tools spanning surrogate-based optimization, Bayesian optimization, and search-based testing.
+      Sample efficiency, the number of candidate inputs simulated before a counterexample is found, is the
+      primary cost measure, since every sample requires an expensive simulation.
+    </p>
+    <p>
+      Falsifying a specification on the very first simulation is essentially impossible for a purely numerical
+      optimizer, which has no information before its first sample. The paper also studies the effect of the
+      underlying model and reasoning effort — including an open-source model, <code>gpt-oss-20b</code>, run
+      locally — and inspects the LLM's reasoning traces to understand how it constructs falsifying inputs.
+    </p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Getting started</h2>
+    <p>
+      LLM-Falsifier is built on top of
+      <a href="https://github.com/cpslab-asu/psy-taliro">Ψ-TaLiRo</a>. It needs Python 3.9,
+      <a href="https://docs.astral.sh/uv/">uv</a>, and MATLAB R2022a with Simulink.
+    </p>
+    <pre><code>git clone https://github.com/aliabigdeli/llm-falsifier.git
+cd llm-falsifier
+uv sync
+
+# add your OpenAI key (or point at a local LM-Studio server instead)
+echo "sk-your-openai-api-key-here" &gt; api_key.txt
+
+cd archcomp
+uv run autotrans_all_specs.py \
+    --spec AT1 --optimizer LLMGB --seed 1 \
+    --llm-model gpt-5-nano --reasoning-effort low \
+    --max-budget 100 --output-time-selection 6 --include-critical-time</code></pre>
+    <p style="margin-top:16px">
+      Full benchmark list, specifications, and command-line options are documented in the
+      <a href="https://github.com/aliabigdeli/llm-falsifier/blob/main/archcomp/README.md">benchmark README</a>.
+    </p>
+  </div>
+</section>
+
+<section id="bibtex">
+  <div class="wrap">
+    <div class="code-head">
+      <h2>BibTeX</h2>
+      <button class="copy" id="copy-btn" type="button">Copy</button>
+    </div>
+    <pre><code id="bib">@misc{arjomandbigdeli2026llmfalsifier,
+  title         = {Large Language Models as Falsifiers for Cyber-Physical Systems},
+  author        = {ArjomandBigdeli, Ali and Zhou, Jiawei and Bak, Stanley},
+  year          = {2026},
+  eprint        = {2609.20752},
+  archivePrefix = {arXiv},
+  primaryClass  = {eess.SY},
+  url           = {https://arxiv.org/abs/2609.20752}
+}</code></pre>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Acknowledgments</h2>
+    <p>
+      This material is based upon work supported by the National Science Foundation under Award No. 2237229
+      and 2448869.
+    </p>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>
+      <a href="https://arxiv.org/abs/2609.20752">Paper</a> ·
+      <a href="https://github.com/aliabigdeli/llm-falsifier">Code</a> ·
+      <a href="mailto:aarjomandbig@cs.stonybrook.edu">Contact</a>
+    </p>
+    <p>Released under the MIT License.</p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var btn = document.getElementById('copy-btn');
+  var bib = document.getElementById('bib');
+  if (!btn || !bib) return;
+  btn.addEventListener('click', function () {
+    var done = function () {
+      btn.textContent = 'Copied';
+      setTimeout(function () { btn.textContent = 'Copy'; }, 1600);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(bib.textContent).then(done, function () {});
+    } else {
+      var r = document.createRange();
+      r.selectNodeContents(bib);
+      var s = window.getSelection();
+      s.removeAllRanges();
+      s.addRange(r);
+      try { document.execCommand('copy'); done(); } catch (e) {}
+    }
+  });
+})();
+</script>
+
+</body>
+</html>
