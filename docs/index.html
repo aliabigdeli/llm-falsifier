@@ -30,7 +30,7 @@
 <meta name="citation_pdf_url" content="https://arxiv.org/pdf/2609.20752">
 
 <link rel="canonical" href="https://aliabigdeli.github.io/llm-falsifier/">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#128293;</text></svg>">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -49,6 +49,7 @@
   --accent-soft:   #fdeceb;
   --btn-bg:        #24292f;
   --btn-text:      #ffffff;
+  --player-bg:     #dde5ec;       /* matches the animation's page color */
   --max:           860px;
 }
 @media (prefers-color-scheme: dark) {
@@ -64,6 +65,7 @@
     --accent-soft: #2a1d1e;
     --btn-bg:      #e6e9ed;
     --btn-text:    #14171a;
+    --player-bg:   #06172c;
   }
 }
 :root[data-theme="dark"] {
@@ -78,6 +80,7 @@
   --accent-soft: #2a1d1e;
   --btn-bg:      #e6e9ed;
   --btn-text:    #14171a;
+  --player-bg:   #06172c;
 }
 
 * { box-sizing: border-box; }
@@ -203,6 +206,54 @@ figcaption {
   text-align: center;
 }
 
+/* ---------- animated summary ---------- */
+
+/* wider than the text column so the 16:9 animation stays legible */
+.wrap-wide { max-width: 1100px; margin: 0 auto; padding: 0 16px; }
+.wrap-wide > h2, .wrap-wide > .lead { max-width: calc(var(--max) - 32px); margin-left: auto; margin-right: auto; }
+
+.player {
+  container-type: inline-size;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--player-bg);
+}
+.player iframe {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  border: 0;
+  background: var(--player-bg);
+}
+/* the animation's own page is a 16:9 stage plus a ~58px playback bar */
+@supports (height: 1cqi) {
+  .player iframe { aspect-ratio: auto; height: calc(100cqi * 9 / 16 + 72px); }
+}
+/* on phones, a tall frame switches the animation to its 9:16 portrait layout */
+@media (max-width: 600px) {
+  .player iframe { aspect-ratio: 9 / 17; }
+  @supports (height: 1cqi) {
+    .player iframe { aspect-ratio: auto; height: min(calc(100cqi * 16 / 9 + 72px), 88vh); }
+  }
+}
+
+.player-note {
+  margin-top: 12px;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+kbd {
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.8em;
+  padding: 1px 5px;
+  border: 1px solid var(--rule);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  background: var(--bg-soft);
+}
+
 /* ---------- highlight stats ---------- */
 
 .stats {
@@ -326,6 +377,14 @@ footer p { margin: 0 0 8px; }
         <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
         Code
       </a>
+      <a class="btn" href="#summary">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 2.4v11.2a.7.7 0 0 0 1.06.6l8.9-5.6a.7.7 0 0 0 0-1.2l-8.9-5.6a.7.7 0 0 0-1.06.6z"/></svg>
+        Animation
+      </a>
+      <a class="btn" href="https://x.com/ali__bigdeli/status/2101759447945076756">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M12.6.75h2.454l-5.36 6.142L16 15.25h-4.937l-3.867-5.07-4.425 5.07H.316l5.733-6.57L0 .75h5.063l3.495 4.633L12.601.75Zm-.86 13.028h1.36L4.323 2.145H2.865z"/></svg>
+        Post
+      </a>
       <a class="btn" href="#bibtex">
         <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 2h12v2H2V2zm0 4h12v2H2V6zm0 4h8v2H2v-2z"/></svg>
         BibTeX
@@ -365,6 +424,20 @@ footer p { margin: 0 0 8px; }
       tools based on a range of optimization paradigms, from surrogate-based and Bayesian optimization to
       search-based testing, on 14 of 21 specifications when measured by the average number of simulations
       required to find a counterexample.
+    </p>
+  </div>
+</section>
+
+<section id="summary">
+  <div class="wrap-wide">
+    <h2>Animated summary</h2>
+    <p class="lead">The paper in two minutes: the problem, the method, the results, and the limits.</p>
+    <div class="player">
+      <iframe id="summary-frame" data-src="summary.html" title="LLM-Falsifier, an animated summary" allow="fullscreen" allowfullscreen></iframe>
+    </div>
+    <p class="player-note">
+      Click the animation or press <kbd>Space</kbd> to pause; use <kbd>&larr;</kbd>/<kbd>&rarr;</kbd> to skip chapters.
+      <a href="summary.html">Open it on its own page</a>.
     </p>
   </div>
 </section>
@@ -495,6 +568,20 @@ uv run autotrans_all_specs.py \
 </footer>
 
 <script>
+/* The animation starts playing as soon as it loads, so load it only once it is half in view. */
+(function () {
+  var f = document.getElementById('summary-frame');
+  if (!f) return;
+  var load = function () { if (!f.getAttribute('src')) f.setAttribute('src', f.getAttribute('data-src')); };
+  if (!('IntersectionObserver' in window)) { load(); return; }
+  var io = new IntersectionObserver(function (entries) {
+    for (var i = 0; i < entries.length; i++) {
+      if (entries[i].isIntersecting) { io.disconnect(); load(); return; }
+    }
+  }, { threshold: 0.5 });
+  io.observe(f);
+})();
+
 (function () {
   var btn = document.getElementById('copy-btn');
   var bib = document.getElementById('bib');
